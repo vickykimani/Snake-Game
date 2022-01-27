@@ -3,7 +3,10 @@
 using namespace std;
 
 //initialize variables
-bool normalGame, mainMenu, snakeGame;
+bool snakeGame;
+enum game{MAIN, START};
+int menu = 0;
+game mode;
 const int width = 25;
 const int height = 25;
 //user variables
@@ -19,31 +22,50 @@ enum directions {STOP = 0, UP, DOWN, LEFT, RIGHT};
 directions dir;
 
 void game_Over() {
-	normalGame = false;
-	mainMenu = true;
 	tailLength = 0;
 	score = 0;
+	mode = MAIN;
 }
 
 void game_Setup() {
 	snakeGame = true;
-	mainMenu = true; 
+	mode = MAIN; 
 }
 
 void main_Menu() {
 	system("cls");
 	cout << "This Is the Main Menu." << endl;
-	cout << "Play the Game." << endl;
-	cout << "Options" << endl;
-	cout << "End Game" << endl;
 
-
-
-
+	if (menu == 0) {
+		cout << ">> Play the Game." << endl;
+		cout << "Options" << endl;
+		cout << "End Game" << endl;
+	}
+	else if (menu == 1) {
+		cout << "Play the Game." << endl;
+		cout << ">> Options" << endl;
+		cout << "End Game" << endl;
+	}
+	else if (menu == 2) {
+		cout << "Play the Game." << endl;
+		cout << "Options" << endl;
+		cout << ">> End Game" << endl;
+	}
 
 
 	if (GetAsyncKeyState(VK_RETURN)) {
-		mainMenu = false;
+		switch (menu) {
+		case 0:
+			mode = START;
+			break;
+		case 1:
+			return;
+			break;
+		case 2:
+			exit(0);
+			break;
+		}
+		mode = START;
 	}
 	else if (GetAsyncKeyState(VK_LEFT) || GetAsyncKeyState('A')) {
 		dir = STOP;
@@ -53,18 +75,28 @@ void main_Menu() {
 	}
 	else if (GetAsyncKeyState(VK_DOWN) || GetAsyncKeyState('S')) {
 		dir = STOP;
+		menu++;
+		Sleep(50);
 	}
 	else if (GetAsyncKeyState(VK_UP) || GetAsyncKeyState('W')) {
 		dir = STOP;
+		menu--;
+		Sleep(50);
 	}
-	else if (GetAsyncKeyState(VK_RETURN)) {
-		return;
+
+	if (menu <= -1) {
+		menu = 2;
+	}
+	else if (menu >= 3) {
+		menu = 0;
 	}
 }
 
 void normal_Setup() {
-	normalGame = true;
+	//starting direction not moving
 	dir = STOP;
+
+	//setting player and target start point
 	x = rand() % width;
 	y = rand() % height;
 	targetX = rand() % width;
@@ -129,29 +161,27 @@ void game_Window() {
 }
 
 void game_Input() {
-	if (mainMenu == false && normalGame == true) {
-		if (GetAsyncKeyState(VK_LEFT) || GetAsyncKeyState('A') && dir != RIGHT) {
+	if (mode == START) {
+		if ((GetAsyncKeyState(VK_LEFT) || GetAsyncKeyState('A')) && dir != RIGHT) {
 			dir = LEFT;
 		}
-		else if (GetAsyncKeyState(VK_RIGHT) || GetAsyncKeyState('D') && dir != LEFT) {
+		else if ((GetAsyncKeyState(VK_RIGHT) || GetAsyncKeyState('D')) && dir != LEFT) {
 			dir = RIGHT;
 		}
-		else if (GetAsyncKeyState(VK_DOWN) || GetAsyncKeyState('S') && dir != UP) {
+		else if ((GetAsyncKeyState(VK_DOWN) || GetAsyncKeyState('S')) && dir != UP) {
 			dir = DOWN;
 		}
-		else if (GetAsyncKeyState(VK_UP) || GetAsyncKeyState('W') && dir != DOWN) {
+		else if ((GetAsyncKeyState(VK_UP) || GetAsyncKeyState('W')) && dir != DOWN) {
 			dir = UP;
 		}
-	}
-	else if (mainMenu == true && normalGame == false) {
-		if (GetAsyncKeyState(VK_RETURN)) {
-			mainMenu = false;
+		else if (GetAsyncKeyState(VK_RETURN)) {
+			return;
 		}
 	}
 }
 
 void game_Program() {
-	//snake tail grows
+	//snake tail location
 	fposX = tailX[0];
 	fposY = tailY[0];
 	tailX[0] = x;
@@ -163,8 +193,14 @@ void game_Program() {
 		tailY[i] = fposY;
 		fposX = sposX;
 		fposY = sposY;
+		while (tailX[i] == targetX && tailY[i] == targetY) {   //prevents the snake from spawning on the food
+			targetX = rand() % width;
+			targetY = rand() % height;
+		}
 	}
 
+
+	//move snake
 	switch (dir) {
 	case LEFT:
 		x -= spd;
@@ -194,23 +230,26 @@ void game_Program() {
 
 	//snake hits target
 	if (x == targetX && y == targetY) {
-		targetX = rand() % width;
-		targetY = rand() % height;
+		//targetX = rand() % width;
+		//targetY = rand() % height;
+		targetX = 20;
+		targetY = 20;
 		score += 10;
 		tailLength++;
 	}
+
 
 }
 
 int main() {
 	game_Setup();
 	while (snakeGame == true) {
-		if (mainMenu == true) {
+		if (mode == MAIN) {
 			main_Menu();
 		}
-		else if (mainMenu == false) {
+		else if (mode == START) {
 			normal_Setup();
-			while (normalGame == true) {
+			while (mode == START) {
 				game_Window();
 				game_Input();
 				game_Program();
