@@ -1,10 +1,9 @@
 #include <iostream>
-#include <conio.h>
 #include <windows.h>
 using namespace std;
 
 //initialize variables
-bool snakeGame;
+bool normalGame, mainMenu, snakeGame;
 const int width = 25;
 const int height = 25;
 //user variables
@@ -19,8 +18,52 @@ int score;
 enum directions {STOP = 0, UP, DOWN, LEFT, RIGHT};
 directions dir;
 
+void game_Over() {
+	normalGame = false;
+	mainMenu = true;
+	tailLength = 0;
+	score = 0;
+}
+
 void game_Setup() {
 	snakeGame = true;
+	mainMenu = true; 
+}
+
+void main_Menu() {
+	system("cls");
+	cout << "This Is the Main Menu." << endl;
+	cout << "Play the Game." << endl;
+	cout << "Options" << endl;
+	cout << "End Game" << endl;
+
+
+
+
+
+
+	if (GetAsyncKeyState(VK_RETURN)) {
+		mainMenu = false;
+	}
+	else if (GetAsyncKeyState(VK_LEFT) || GetAsyncKeyState('A')) {
+		dir = STOP;
+	}
+	else if (GetAsyncKeyState(VK_RIGHT) || GetAsyncKeyState('D')) {
+		dir = STOP;
+	}
+	else if (GetAsyncKeyState(VK_DOWN) || GetAsyncKeyState('S')) {
+		dir = STOP;
+	}
+	else if (GetAsyncKeyState(VK_UP) || GetAsyncKeyState('W')) {
+		dir = STOP;
+	}
+	else if (GetAsyncKeyState(VK_RETURN)) {
+		return;
+	}
+}
+
+void normal_Setup() {
+	normalGame = true;
 	dir = STOP;
 	x = rand() % width;
 	y = rand() % height;
@@ -80,35 +123,29 @@ void game_Window() {
 		cout << "*";
 	}
 	cout << endl;
-	cout << score;
+
+	//score board
+	cout << "Score: " << score;
 }
 
 void game_Input() {
-	if (_kbhit()) {
-		switch (_getch()) {
-			case 'a':                     //moves snake to the left
-				if (dir != RIGHT) {
-					dir = LEFT;
-				}
-				break;
-			case 's':                     //moves snake to the bottom
-				if (dir != UP) {
-					dir = DOWN;
-				}
-				break;
-			case 'd':                    //moves snake to the right
-				if (dir != LEFT) {
-					dir = RIGHT;
-				}
-				break;
-			case 'w':                    //moves snake to the top
-				if (dir != DOWN) {
-					dir = UP;
-				}
-				break;
-			case '0':
-				snakeGame = false;
-				break;
+	if (mainMenu == false && normalGame == true) {
+		if (GetAsyncKeyState(VK_LEFT) || GetAsyncKeyState('A') && dir != RIGHT) {
+			dir = LEFT;
+		}
+		else if (GetAsyncKeyState(VK_RIGHT) || GetAsyncKeyState('D') && dir != LEFT) {
+			dir = RIGHT;
+		}
+		else if (GetAsyncKeyState(VK_DOWN) || GetAsyncKeyState('S') && dir != UP) {
+			dir = DOWN;
+		}
+		else if (GetAsyncKeyState(VK_UP) || GetAsyncKeyState('W') && dir != DOWN) {
+			dir = UP;
+		}
+	}
+	else if (mainMenu == true && normalGame == false) {
+		if (GetAsyncKeyState(VK_RETURN)) {
+			mainMenu = false;
 		}
 	}
 }
@@ -144,14 +181,14 @@ void game_Program() {
 	}
 
 	//snake hits borders
-	if (x < 0 || x >= width - 1 || y < 0 || y >= height - 1) {
-		snakeGame = false;
+	if (x <= 0 || x >= width - 1 || y < 0 || y > height - 1) {
+		game_Over();
 	}
 
 	//snake tail hit
 	for (int i = 0; i < tailLength; i++) {
 		if (x == tailX[i] && y == tailY[i]) {
-			snakeGame = false;
+			game_Over();
 		}
 	}
 
@@ -159,7 +196,7 @@ void game_Program() {
 	if (x == targetX && y == targetY) {
 		targetX = rand() % width;
 		targetY = rand() % height;
-		score++;
+		score += 10;
 		tailLength++;
 	}
 
@@ -167,10 +204,19 @@ void game_Program() {
 
 int main() {
 	game_Setup();
-	while (snakeGame == true){
-		game_Window();
-		game_Input();
-		game_Program();
-		Sleep(30);
+	while (snakeGame == true) {
+		if (mainMenu == true) {
+			main_Menu();
+		}
+		else if (mainMenu == false) {
+			normal_Setup();
+			while (normalGame == true) {
+				game_Window();
+				game_Input();
+				game_Program();
+				Sleep(30);
+			}
+		}
 	}
+	
 }
