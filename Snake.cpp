@@ -1,5 +1,6 @@
 #include <iostream>
 #include <conio.h>
+#include <windows.h>
 using namespace std;
 
 //initialize variables
@@ -8,6 +9,9 @@ const int width = 25;
 const int height = 25;
 //user variables
 int x, y, spd = 1;
+int tailX[100], tailY[100], tailLength; //100 is the maximum number of tails the snake can have
+//tail coordinates
+int fposX, fposY, sposX, sposY;
 //target variables
 int targetX, targetY;
 //game variables
@@ -50,8 +54,20 @@ void game_Window() {
 			else if (i == y && j == x) {
 				cout << "S";
 			}
+			else if (i == targetY && j == targetX) {
+				cout << "0";
+			}
 			else {
-				cout << " ";
+				bool tail = false;
+				for (int k = 0; k < tailLength; k++) {
+					if (j == tailX[k] && i == tailY[k]) {
+						cout << "s";
+						tail = true;
+					}
+				}
+				if (!tail) {
+					cout << " ";
+				}
 			}
 			
 		}
@@ -64,6 +80,7 @@ void game_Window() {
 		cout << "*";
 	}
 	cout << endl;
+	cout << score;
 }
 
 void game_Input() {
@@ -97,6 +114,20 @@ void game_Input() {
 }
 
 void game_Program() {
+	//snake tail grows
+	fposX = tailX[0];
+	fposY = tailY[0];
+	tailX[0] = x;
+	tailY[0] = y;
+	for (int i = 1; i < tailLength; i++) {
+		sposX = tailX[i];
+		sposY = tailY[i];
+		tailX[i] = fposX;
+		tailY[i] = fposY;
+		fposX = sposX;
+		fposY = sposY;
+	}
+
 	switch (dir) {
 	case LEFT:
 		x -= spd;
@@ -112,8 +143,24 @@ void game_Program() {
 		break;
 	}
 
-	if (x <= 0 || x >= width - 1 || y <= 0 || y >= height - 1) {
+	//snake hits borders
+	if (x < 0 || x >= width - 1 || y < 0 || y >= height - 1) {
 		snakeGame = false;
+	}
+
+	//snake tail hit
+	for (int i = 0; i < tailLength; i++) {
+		if (x == tailX[i] && y == tailY[i]) {
+			snakeGame = false;
+		}
+	}
+
+	//snake hits target
+	if (x == targetX && y == targetY) {
+		targetX = rand() % width;
+		targetY = rand() % height;
+		score++;
+		tailLength++;
 	}
 
 }
@@ -124,5 +171,6 @@ int main() {
 		game_Window();
 		game_Input();
 		game_Program();
+		Sleep(30);
 	}
 }
